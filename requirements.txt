@@ -1,1 +1,2 @@
 pyusb~=1.1.1
+multimethod~=1.5
