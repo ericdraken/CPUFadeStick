@@ -4,6 +4,7 @@ from unittest import TestCase
 
 from core.BlinkStick import BlinkStick
 from core.FadeStickUSB import findFirstFadeStick
+from exceptions.NumberExceptions import RangeIntException
 from utils.Colors import colorToRGB
 
 
@@ -76,3 +77,23 @@ class TestBlinkStick(TestCase):
         self.device.pulse(colorToRGB("green"), 2, 500)
         curr_rgb = self.device.getColor()
         self.assertEqual(colorToRGB("off"), curr_rgb)
+
+    def test_pulse_bad1(self):
+        with self.assertRaises(RangeIntException):
+            self.device.pulse(colorToRGB("green"), -2)
+
+    def test_pulse_bad2(self):
+        with self.assertRaises(RangeIntException):
+            self.device.pulse(colorToRGB("green"), 1, -1)
+
+    def test_pulse_bad3(self):
+        with self.assertRaises(RangeIntException):
+            self.device.pulse(colorToRGB("green"), 1, 1, -1)
+
+    def test_morph_bad(self):
+        with self.assertRaises(RangeIntException):
+            self.device.morph(colorToRGB("green"), -1, -2)
+
+    def test_blink_bad(self):
+        with self.assertRaises(RangeIntException):
+            self.device.blink(colorToRGB("green"), 0, -2)
