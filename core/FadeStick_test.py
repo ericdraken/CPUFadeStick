@@ -68,7 +68,7 @@ class TestFadeStick(TestCase):
             suite.addTest(
                 unittest.FunctionTestCase(
                     # Using 'None if' because lambdas are () -> None
-                    # Bind color to local variable k
+                    # Bind end_color to local variable k
                     lambda color=k: None if (
                         self.log.info(f"Testing color {color}"),
                         setRGB := self.device.setColor(color),

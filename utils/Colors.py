@@ -50,5 +50,8 @@ def intsToRGB(red: int = 0, green: int = 0, blue: int = 0) -> RGB:
                                       f"below 0 or above 255. Given {red}, {green}, {blue}.")
     return RGB(red, green, blue)
 
+def colorToRGB(color: str) -> RGB:
+    return hexToRGB(colorToHex(color))
+
 def invertRGB(rgb: RGB) -> RGB:
     return RGB(255 - rgb.red, 255 - rgb.green, 255 - rgb.blue)
