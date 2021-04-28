@@ -1,16 +1,16 @@
 #  Copyright (c) Eric Draken, 2021.
-from typing import Text
+from __future__ import annotations
+from typing import Final
 
-import usb
-from usb.core import Device
+from multipledispatch import dispatch
 
-from constants.FadeStickConsts import FS_BYTE_INDEX
-
-from exceptions.FadeStickException import FadeStickException
+from constants.FadeStickConsts import FS_SERIAL_INDEX, FS_REPORT_ID
+from exceptions.FadeStickColorException import FadeStickColorException
+from utils.Colors import invertRGB, colorToHex, hexToRGB
+from utils.Types import RGB, USBDevice
 
 
 class FadeStick(object):
-
     def __repr__(self):
         return "<" + self.__str__() + ">"
 
@@ -18,153 +18,60 @@ class FadeStick(object):
         string = "TODO"  # TODO: this
         return string
 
-    serial: Text = ""
-    device: Device = None
-    error_reporting = True
+    serial: str = ""
+    device: USBDevice = None
+    error_reporting: bool = True
+    inverse: bool = False
 
-    def __init__(self, device: Device = None, error_reporting=True):
-        self.error_reporting = error_reporting
+    def __init__(self, device: USBDevice = None, error_reporting=True):
+        self.error_reporting: Final = error_reporting
 
         if device:
-            # TODO: Not sure how I feel about local imports
             from core.FadeStickUSB import openUSBDevice, getUSBString
-            self.device = device
+            self.device: Final = device
             openUSBDevice(device)
-            self.serial = getUSBString(device, FS_BYTE_INDEX)
+            self.serial: Final = getUSBString(device, FS_SERIAL_INDEX)
+
+    @dispatch(str)
+    def setColor(self, name_or_hex: str) -> RGB:
+        try:
+            return self.setColor(hexToRGB(colorToHex(name_or_hex)))
+        except FadeStickColorException:
+            return self.setColor(hexToRGB(name_or_hex))
+
+    @dispatch(int, int, int)
+    def setColor(self, red: int, green: int, blue: int) -> RGB:
+        return self.setColor(RGB(red, green, blue))
+
+    # noinspection PyBroadException
+    @dispatch(RGB)
+    def setColor(self, rgb: RGB) -> RGB:
+        if self.inverse:
+            rgb = invertRGB(rgb)
+
+        control_string = bytes(bytearray([0, rgb.red, rgb.green, rgb.blue]))
+
+        from core.FadeStickUSB import sendControlTransfer
+        if self.error_reporting:
+            sendControlTransfer(self, 0x20, 0x9, FS_REPORT_ID, 0, control_string)
+        else:
+            try:
+                sendControlTransfer(self, 0x20, 0x9, FS_REPORT_ID, 0, control_string)
+            except Exception:
+                pass
+
+        return rgb
+
+    def getColor(self) -> RGB:
+        from core.FadeStickUSB import sendControlTransfer
+        device_bytes = sendControlTransfer(self, 0x80 | 0x20, 0x1, 0x0001, 0, 33)
+        rgb = RGB(device_bytes[1], device_bytes[2], device_bytes[3])
+        return invertRGB(rgb) if self.inverse else rgb
 
 
-    #
-    # def _usb_ctrl_transfer(self, bmRequestType, bRequest, wValue, wIndex, data_or_wLength):
-    #     try:
-    #         return self.device.ctrl_transfer(bmRequestType, bRequest, wValue, wIndex, data_or_wLength)
-    #     except usb.USBError:
-    #         # Could not communicate with FadeStick device
-    #         # attempt to find it again based on serial
-    #
-    #         if self._refresh_device():
-    #             return self.device.ctrl_transfer(bmRequestType, bRequest, wValue, wIndex, data_or_wLength)
-    #         else:
-    #             raise FadeStickException("Could not communicate with FadeStick {0} - it may have been removed".format(self.bs_serial))
-    #
-    #
-    #
-    # def get_serial(self):
-    #     """
-    #     Returns the serial number of device.::
-    #
-    #         BSnnnnnn-1.0
-    #         ||  |    | |- Software minor version
-    #         ||  |    |--- Software major version
-    #         ||  |-------- Denotes sequential number
-    #         ||----------- Denotes FadeStick device
-    #
-    #     Software version defines the capabilities of the device
-    #
-    #     @rtype: str
-    #     @return: Serial number of the device
-    #     """
-    #     return self._usb_get_string(self.device, 3)
-    #
-    # def get_manufacturer(self):
-    #     """
-    #     Get the manufacturer of the device
-    #
-    #     @rtype: str
-    #     @return: Device manufacturer's name
-    #     """
-    #     return self._usb_get_string(self.device, 1)
-    #
-    # def get_variant(self):
-    #     """
-    #     Get the product variant of the device.
-    #
-    #     @rtype: int
-    #     @return: FadeStick.UNKNOWN, FadeStick.FadeStick
-    #     """
-    #
-    #     serial = self.get_serial()
-    #     major = serial[-3]
-    #     minor = serial[-1]
-    #
-    #     version_attribute = self.device.bcdDevice
-    #
-    #     if major == "1":
-    #         return self.FadeStick
-    #     else:
-    #         return self.UNKNOWN
-    #
-    # def get_variant_string(self):
-    #     """
-    #     Get the product variant of the device as string.
-    #
-    #     @rtype: string
-    #     @return: "FadeStick", "FadeStick Pro", etc
-    #     """
-    #     product = self.get_variant()
-    #
-    #     if product == self.FadeStick:
-    #         return "FadeStick"
-    #
-    #     return "Unknown"
-    #
-    # def get_description(self):
-    #     """
-    #     Get the description of the device
-    #
-    #     @rtype: str
-    #     @return: Device description
-    #     """
-    #     return self._usb_get_string(self.device, 2)
-    #
-    # def set_error_reporting(self, error_reporting):
-    #     """
-    #     Enable or disable error reporting
-    #
-    #     @type  error_reporting: Boolean
-    #     @param error_reporting: display errors if they occur during communication with the device
-    #     """
-    #     self.error_reporting = error_reporting
-    # #
-    # # def set_color(self, channel=0, index=0, red=0, green=0, blue=0, name=None, hex=None):
-    # #     """
-    # #     Set the color to the device as RGB
-    # #
-    # #     @type  red: int
-    # #     @param red: Red color intensity 0 is off, 255 is full red intensity
-    # #     @type  green: int
-    # #     @param green: Green color intensity 0 is off, 255 is full green intensity
-    # #     @type  blue: int
-    # #     @param blue: Blue color intensity 0 is off, 255 is full blue intensity
-    # #     @type  name: str
-    # #     @param name: Use CSS color name as defined here: U{http://www.w3.org/TR/css3-color/}
-    # #     @type  hex: str
-    # #     @param hex: Specify color using hexadecimal color value e.g. '#FF3366'
-    # #     """
-    # #
-    # #     red, green, blue = self._determine_rgb(red=red, green=green, blue=blue, name=name, hex=hex)
-    # #
-    # #     r = int(round(red, 3))
-    # #     g = int(round(green, 3))
-    # #     b = int(round(blue, 3))
-    # #
-    # #     if self.inverse:
-    # #         r, g, b = 255 - r, 255 - g, 255 - b
-    # #
-    # #     if index == 0 and channel == 0:
-    # #         control_string = bytes(bytearray([0, r, g, b]))
-    # #         report_id = 0x0001
-    # #     else:
-    # #         control_string = bytes(bytearray([5, channel, index, r, g, b]))
-    # #         report_id = 0x0005
-    # #
-    # #     if self.error_reporting:
-    # #         self._usb_ctrl_transfer(0x20, 0x9, report_id, 0, control_string)
-    # #     else:
-    # #         try:
-    # #             self._usb_ctrl_transfer(0x20, 0x9, report_id, 0, control_string)
-    # #         except Exception:
-    # #             pass
-    # #
+
+
+
     # # def _determine_rgb(self, red=0, green=0, blue=0, name=None, hex=None):
     # #
     # #     try:
@@ -187,18 +94,7 @@ class FadeStick(object):
     # #
     # #     return red, green, blue
     # #
-    # # def _get_color_rgb(self, index=0):
-    # #     if index == 0:
-    # #         device_bytes = self._usb_ctrl_transfer(0x80 | 0x20, 0x1, 0x0001, 0, 33)
-    # #         if self.inverse:
-    # #             return [255 - device_bytes[1], 255 - device_bytes[2], 255 - device_bytes[3]]
-    # #         else:
-    # #             return [device_bytes[1], device_bytes[2], device_bytes[3]]
-    # #     else:
-    # #         data = self.get_led_data((index + 1) * 3)
-    # #
-    # #         return [data[index * 3 + 1], data[index * 3], data[index * 3 + 2]]
-    # #
+
     # # def _get_color_hex(self, index=0):
     # #     r, g, b = self._get_color_rgb(index)
     # #     return '#%02x%02x%02x' % (r, g, b)
