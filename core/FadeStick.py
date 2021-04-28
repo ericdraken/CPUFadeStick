@@ -62,6 +62,9 @@ class FadeStick(object):
 
         return rgb
 
+    def turnOff(self) -> None:
+        self.setColor(0, 0, 0)
+
     def getColor(self) -> RGB:
         from core.FadeStickUSB import sendControlTransfer
         device_bytes = sendControlTransfer(self, 0x80 | 0x20, 0x1, 0x0001, 0, 33)
