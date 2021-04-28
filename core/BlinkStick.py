@@ -6,8 +6,8 @@ from core.FadeStick import FadeStick
 from utils.Types import RGB
 
 class BlinkStick(FadeStick):
-    def __init__(self, fs: FadeStick = None, error_reporting=True):
-        super().__init__(fs.device, error_reporting)
+    def __init__(self, fs: FadeStick = None):
+        super().__init__(fs.device)
 
     # Original blink method that slows the CPU
     def blink(self, color: RGB, repeats: int = 1, delay: int = 500):

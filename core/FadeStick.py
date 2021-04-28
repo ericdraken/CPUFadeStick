@@ -20,12 +20,9 @@ class FadeStick(object):
 
     serial: str = ""
     device: USBDevice = None
-    error_reporting: bool = True
     inverse: bool = False
 
-    def __init__(self, device: USBDevice = None, error_reporting=True):
-        self.error_reporting: Final = error_reporting
-
+    def __init__(self, device: USBDevice = None):
         if device:
             from core.FadeStickUSB import openUSBDevice, getUSBString
             self.device: Final = device
@@ -52,14 +49,7 @@ class FadeStick(object):
         control_string = bytes(bytearray([0, rgb.red, rgb.green, rgb.blue]))
 
         from core.FadeStickUSB import sendControlTransfer
-        if self.error_reporting:
-            sendControlTransfer(self, 0x20, 0x9, FS_REPORT_ID, 0, control_string)
-        else:
-            try:
-                sendControlTransfer(self, 0x20, 0x9, FS_REPORT_ID, 0, control_string)
-            except Exception:
-                pass
-
+        sendControlTransfer(self, 0x20, 0x9, FS_REPORT_ID, 0, control_string)
         return rgb
 
     def turnOff(self) -> None:
