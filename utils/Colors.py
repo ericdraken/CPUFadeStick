@@ -11,7 +11,7 @@ COLOR_DICT: Final[Dict[str, str]] = {
     'off': '0x000000',
     'black': '0x000000',
     'blue': '0x0000ff',
-    'green': '0x008000',
+    'green': '0x00ff00',
     'purple': '0x800080',
     'red': '0xff0000',
     'white': '0xffffff',

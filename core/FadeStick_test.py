@@ -1,4 +1,5 @@
 #  Copyright (c) Eric Draken, 2021.
+import time
 import unittest
 from unittest import TestCase
 
@@ -60,13 +61,17 @@ class TestFadeStick(TestCase):
     def test_try_all_colors(self):
         from utils.Colors import COLOR_DICT
         suite = unittest.TestSuite()
-        for k in COLOR_DICT.keys():
+        for k, v in COLOR_DICT.items():
             suite.addTest(
                 unittest.FunctionTestCase(
                     # Using 'None if' because lambdas are () -> None
-                    lambda: None if (
-                        setRGB := self.device.setColor(k),
+                    # Bind color to local variable k
+                    lambda color=k: None if (
+                        print(color),
+                        setRGB := self.device.setColor(color),
                         getRGB := self.device.getColor(),
-                        self.assertEqual(setRGB, getRGB)) else None)
+                        self.assertEqual(setRGB, getRGB),
+                        time.sleep(0.2)  # Pleasing delay to see the colors
+                    ) else None)
             )
         self.assertTrue(unittest.TextTestRunner().run(suite).wasSuccessful())

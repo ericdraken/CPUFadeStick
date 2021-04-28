@@ -20,7 +20,7 @@ class TestColors(TestCase):
                      ("0x0000ff", "blue")]:
             suite.addTest(
                 unittest.FunctionTestCase(
-                    lambda: self.assertEqual(h, colorToHex(c))))
+                    lambda _h=h, _c=c: self.assertEqual(_h, colorToHex(_c))))
         self.assertTrue(unittest.TextTestRunner().run(suite).wasSuccessful())
 
     # Pass a lambda so the function isn't immediately evaluated
@@ -30,11 +30,11 @@ class TestColors(TestCase):
     def test_hex_to_rgb(self):
         suite = unittest.TestSuite()
         for h, rgb in [("0xff0000", RGB(255, 0, 0)),
-                       ("0x00ff00", RGB(0, 255, 1)),
+                       ("0x00ff00", RGB(0, 255, 0)),
                        ("0x0000ff", RGB(0, 0, 255))]:
             suite.addTest(
                 unittest.FunctionTestCase(
-                    lambda: self.assertEqual(rgb, hexToRGB(h))))
+                    lambda _h=h, _rgb=rgb: self.assertEqual(_rgb, hexToRGB(_h))))
         self.assertTrue(unittest.TextTestRunner().run(suite).wasSuccessful())
 
     def test_no_hex(self):
