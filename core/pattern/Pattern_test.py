@@ -59,5 +59,21 @@ class TestPattern(TestCase):
             pattern.addColorAndDuration(self.red, 100)
         self.assertEqual(Pattern.MAX_BUFFER_SIZE, len(pattern))
 
-    # def test_get_pattern(self):
-    #     self.fail()
+    def test_get_pattern_empty(self):
+        pattern = Pattern()
+        self.assertEqual([], pattern.getPattern())
+
+    def test_get_pattern_many(self):
+        pattern = Pattern()
+        pattern.addColorAndDuration(self.red, 1)
+        p = pattern.getPattern()
+        self.assertEqual([(self.red, 1)], list(map(lambda cd: (cd.color, cd.duration), p)))
+
+    def test_get_pattern_immutable(self):
+        p1 = Pattern()
+        p1.addColorAndDuration(self.red, 1)
+
+        p2 = Pattern()
+        self.assertEqual([], p2.getPattern())
+        self.assertEqual([(self.red, 1)], list(map(lambda cd: (cd.color, cd.duration), p1.getPattern())))
+
