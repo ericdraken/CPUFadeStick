@@ -55,3 +55,10 @@ def colorToRGB(color: str) -> RGB:
 
 def invertRGB(rgb: RGB) -> RGB:
     return RGB(255 - rgb.red, 255 - rgb.green, 255 - rgb.blue)
+
+# Named colors
+RED: Final = colorToRGB("red")
+GREEN: Final = colorToRGB("green")
+BLUE: Final = colorToRGB("blue")
+OFF: Final = colorToRGB("off")
+BLACK: Final = OFF

@@ -10,7 +10,7 @@ class ColorDuration:
 
     def __init__(self, color: RGB, duration: int) -> None:
         self.color: Final[RGB] = color
-        self.duration: Final[int] = RangeInt(duration, 1, self.MAX_DURATION, "duration")
+        self.duration: Final[int] = RangeInt(duration, 0, self.MAX_DURATION, "duration")
 
     def __repr__(self):
         return "<" + self.__str__() + ">"
@@ -23,6 +23,8 @@ class ColorDuration:
 class Pattern:
     MAX_BUFFER_SIZE: Final = 62
     DURATION_RESOLUTION: Final = 10.0
+    PATTERN_BUFFER_BYTE_LENGTH: Final = 1 + 1 + (4 * MAX_BUFFER_SIZE)  # (count + (r, g, b, delay) * x)
+
     _pattern: List[ColorDuration]
 
     def __new__(cls) -> Any:
@@ -53,6 +55,22 @@ class Pattern:
         # REF: https://www.geeksforgeeks.org/python-cloning-copying-list/
         # REF: https://stackoverflow.com/a/22796367/1938889
         return self._pattern[:]
+
+    def getIntPattern(self) -> List[int]:
+        data: List[int] = [0] * self.PATTERN_BUFFER_BYTE_LENGTH
+        data[0] = len(self._pattern)
+
+        for i, p in enumerate(self._pattern):
+            data[(i*4)+1:(i*4)+5] = [
+                p.color.red,
+                p.color.green,
+                p.color.blue,
+                round(p.duration / self.DURATION_RESOLUTION)
+            ]
+        return data[:]
+
+    def getBytePattern(self) -> bytes:
+        return bytes(self.getIntPattern())
 
     def __len__(self) -> int:
         return len(self._pattern)

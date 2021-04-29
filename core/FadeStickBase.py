@@ -14,6 +14,12 @@ from utils.Types import RGB, USBDevice
 
 
 class FadeStickBase(object):
+    MAX_BLINKS: Final = 100
+    MAX_DELAY: Final = 5000
+    MAX_DURATION: Final = 5000
+    MAX_STEPS: Final = 100
+    MAX_PULSES: Final = 100
+
     serial: str = ""
     device: USBDevice = None
     inverse: bool = False

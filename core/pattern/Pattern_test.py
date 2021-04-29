@@ -20,7 +20,7 @@ class TestColorDuration(TestCase):
 
     def test_small_duration(self):
         with self.assertRaises(RangeIntException):
-            ColorDuration(color=RGB(0, 0, 0), duration=0)
+            ColorDuration(color=RGB(0, 0, 0), duration=-1)
 
 
 class TestPattern(TestCase):
@@ -77,3 +77,29 @@ class TestPattern(TestCase):
         self.assertEqual([], p2.getPattern())
         self.assertEqual([(self.red, 1)], list(map(lambda cd: (cd.color, cd.duration), p1.getPattern())))
 
+    def test_get_int_pattern_empty(self):
+        p = Pattern()
+        self.assertEqual([], p.getIntPattern())
+
+    def test_get_int_pattern(self):
+        p = Pattern()
+        p.addColorAndDuration(self.red, 100)
+        self.assertEqual([1, 255, 0, 0, 10, 0, 0], p.getIntPattern()[:7])
+
+    def test_get_int_pattern2(self):
+        p = Pattern()
+        p.addColorAndDuration(self.red, 100)
+        p.addColorAndDuration(self.green, 100)
+        self.assertEqual([2,
+                          255, 0, 0, 10,
+                          0, 255, 0, 10], p.getIntPattern()[:9])
+
+    def test_get_int_pattern_duration(self):
+        p = Pattern()
+        p.addColorAndDuration(self.red, 9)
+        self.assertEqual([1, 255, 0, 0, 1], p.getIntPattern()[:5])
+
+    def test_get_int_pattern_duration2(self):
+        p = Pattern()
+        p.addColorAndDuration(self.red, 4)
+        self.assertEqual([1, 255, 0, 0, 0], p.getIntPattern()[:5])

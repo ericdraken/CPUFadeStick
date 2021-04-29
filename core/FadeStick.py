@@ -1,7 +1,9 @@
 #  Copyright (c) Eric Draken, 2021.
 from __future__ import annotations
 from core.FadeStickBase import FadeStickBase
-from utils.Types import RGB
+from core.pattern.Pattern import Pattern
+from utils.Colors import BLACK
+from utils.Types import RGB, RangeInt
 
 
 class FadeStick(FadeStickBase):
@@ -16,7 +18,19 @@ class FadeStick(FadeStickBase):
         super().__init__(fs.device)
 
     def blink(self, color: RGB, blinks: int = 1, delay: int = 500):
-        super().blink(color, blinks, delay)
+        blinks = RangeInt(blinks, 1, self.MAX_BLINKS, "blinks")
+        delay = RangeInt(delay, 1, self.MAX_DELAY, "delay")
+
+        pattern = Pattern()
+        ms_delay: int = round(float(delay) / float(1000))
+        for x in range(blinks):
+            if x:
+                pattern.addColorAndDuration(BLACK, ms_delay)
+            pattern.addColorAndDuration(color, ms_delay)
+            pattern.addColorAndDuration(BLACK, 0)
+
+        # Send the pattern to the FadeStick
+
 
     def morph(self, end_color: RGB, duration: int = 1000, steps: int = 50):
         super().morph(end_color, duration, steps)
