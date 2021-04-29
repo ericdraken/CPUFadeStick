@@ -8,8 +8,7 @@ from constants.FadeStickConsts import FS_VENDOR_ID, FS_PRODUCT_ID, FS_MESSAGE_ID
     FS_SERIAL_INDEX, FS_MANUFACTURER_INDEX, FS_DESCRIPTION_INDEX
 from exceptions.FadeStickUSBException import FadeStickUSBException
 from utils.Types import USBDevice
-
-from core.FadeStick import FadeStick
+from core.FadeStickBase import FadeStickBase
 
 
 def setUSBUDevRule():
@@ -28,20 +27,20 @@ def setUSBUDevRule():
           "udevadm control --reload-rules && udevadm trigger")
     return 0
 
-def findAllFadeSticks() -> List[FadeStick]:
-    results: List[FadeStick] = []
+def findAllFadeSticks() -> List[FadeStickBase]:
+    results: List[FadeStickBase] = []
     for d in _findFadeSticksAsGenerator():
-        results.extend([FadeStick(device=d)])
+        results.extend([FadeStickBase(device=d)])
     return results
 
-def findFirstFadeStick() -> FadeStick:
+def findFirstFadeStick() -> FadeStickBase:
     device: USBDevice = next(_findFadeSticksAsGenerator())
     if device:
-        return FadeStick(device=device)
+        return FadeStickBase(device=device)
 
     raise FadeStickUSBException("No FadeSticks found")
 
-def findFadeStickBySerial(serial: str) -> FadeStick:
+def findFadeStickBySerial(serial: str) -> FadeStickBase:
     devices: List[USBDevice] = []
     for d in _findFadeSticksAsGenerator():
         try:
@@ -52,13 +51,13 @@ def findFadeStickBySerial(serial: str) -> FadeStick:
             print("{0}".format(e))
 
     if devices:
-        return FadeStick(device=devices[0])
+        return FadeStickBase(device=devices[0])
 
 def _findFadeSticksAsGenerator() -> Optional[USBDevice]:
     return usb.core.find(find_all=True, idVendor=FS_VENDOR_ID, idProduct=FS_PRODUCT_ID)
 
-@dispatch(FadeStick, int)
-def getUSBString(fs: FadeStick, index: int) -> str:
+@dispatch(FadeStickBase, int)
+def getUSBString(fs: FadeStickBase, index: int) -> str:
     return getUSBString(fs.device, index, "")
 
 @dispatch(USBDevice, int)
@@ -66,7 +65,7 @@ def getUSBString(device: USBDevice, index: int) -> str:
     return getUSBString(device, index, "")
 
 @dispatch(USBDevice, int, str)
-def getUSBString(fs: FadeStick, index: int, serial: str) -> str:
+def getUSBString(fs: FadeStickBase, index: int, serial: str) -> str:
     return getUSBString(fs.device, index, serial)
 
 @dispatch(USBDevice, int, str)
@@ -93,10 +92,10 @@ def getUSBString(device: USBDevice, index: int, serial: str) -> str:
         else:
             raise FadeStickUSBException(f"Could not communicate with FadeStick {device} - it may have been removed")
 
-def getManufacturer(fs: FadeStick):
+def getManufacturer(fs: FadeStickBase):
     return getUSBString(fs.device, FS_MANUFACTURER_INDEX)
 
-def getDescription(fs: FadeStick):
+def getDescription(fs: FadeStickBase):
     return getUSBString(fs.device, FS_DESCRIPTION_INDEX)
 
 def openUSBDevice(device: USBDevice):
@@ -111,7 +110,7 @@ def openUSBDevice(device: USBDevice):
 
     return True
 
-def sendControlTransfer(fs: FadeStick, requestType: int,
+def sendControlTransfer(fs: FadeStickBase, requestType: int,
                         request: int, value: Any, index: int,
                         dataOrLength: Any = None, timeout: int = 5000):
     try:

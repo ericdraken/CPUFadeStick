@@ -1,12 +1,20 @@
 #  Copyright (c) Eric Draken, 2021.
+from __future__ import annotations
 import time
 from typing import List
 
-from core.FadeStick import FadeStick
+from core.FadeStickBase import FadeStickBase
 from utils.Types import RGB, RangeInt
 
-class BlinkStick(FadeStick):
-    def __init__(self, fs: FadeStick = None):
+class BlinkStick(FadeStickBase):
+    def __repr__(self):
+        return "<" + self.__str__() + ">"
+
+    def __str__(self):
+        string = f"FadeStick[{self.device if self.device else ''}]"
+        return string
+
+    def __init__(self, fs: FadeStickBase = None):
         super().__init__(fs.device)
 
     # Original blink logic that slows the CPU

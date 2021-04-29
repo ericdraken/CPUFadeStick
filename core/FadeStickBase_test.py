@@ -4,13 +4,13 @@ import time
 import unittest
 from unittest import TestCase
 
+from core.FadeStickBase import FadeStickBase
 from core.FadeStickUSB import findFirstFadeStick
-from core.FadeStick import FadeStick
 from utils.Types import RGB
 
 
-class TestFadeStick(TestCase):
-    device: FadeStick
+class TestFadeStickBase(TestCase):
+    device: FadeStickBase
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -78,3 +78,9 @@ class TestFadeStick(TestCase):
                     ) else None)
             )
         self.assertTrue(unittest.TextTestRunner().run(suite).wasSuccessful())
+
+    def test_abstract(self):
+        with self.assertRaises(NotImplementedError) as m:
+            cls = FadeStickBase()
+            cls.blink(RGB(0, 0, 0))
+        self.assertIn("Method 'blink' is abstract", str(m.exception))
