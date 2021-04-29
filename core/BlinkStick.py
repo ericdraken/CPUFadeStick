@@ -11,7 +11,7 @@ class BlinkStick(FadeStickBase):
         return "<" + self.__str__() + ">"
 
     def __str__(self):
-        string = f"{self.__class__}[{self.device if self.device else ''}]"
+        string = f"{self.__class__.__name__}[{self.device if self.device else ''}]"
         return string
 
     def __init__(self, fs: FadeStickBase = None):

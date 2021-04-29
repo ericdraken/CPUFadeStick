@@ -77,3 +77,10 @@ class TestRangeInt(TestCase):
         with self.assertRaises(RangeIntException) as m:
             RangeInt(v, mn, mx, "test")
         self.assertEqual(f"test has a bad range [{mn}..{mx}]: {v}", str(m.exception))
+
+    def test_str(self):
+        self.assertEqual("1", str(RangeInt(1, 0, 255, "test")))
+
+    def test_repr(self):
+        self.assertEqual(f"{'RangeInt'}({'test'}, [{0}..{255}]: {1})"
+                         , repr(RangeInt(1, 0, 255, "test")))

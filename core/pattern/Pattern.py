@@ -23,18 +23,20 @@ class ColorDuration:
 class Pattern:
     MAX_BUFFER_SIZE: Final = 62
     DURATION_RESOLUTION: Final = 10.0
-    _pattern: List[ColorDuration] = []
+    _pattern: List[ColorDuration]
 
     def __new__(cls) -> Any:
         logging.basicConfig(level=logging.INFO)
         cls.log = logging.getLogger(cls.__name__)
-        return super().__new__(cls)
+
+    def __init__(self) -> None:
+        _pattern: List[ColorDuration] = []
 
     def __repr__(self):
         return "<" + self.__str__() + ">"
 
     def __str__(self):
-        string = f"{self.__class__}[{self._pattern}]"
+        string = f"{self.__class__.__name__}[{self._pattern}]"
         return string
 
     def addColorAndDuration(self, color: RGB, duration: int):

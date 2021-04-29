@@ -28,20 +28,19 @@ class TestPattern(TestCase):
     green: Final = colorToRGB("green")
     blue: Final = colorToRGB("blue")
 
+    def test_immutable(self):
+        pattern = Pattern()
+        pattern.addColorAndDuration(self.red, 100)
+
+        pattern = Pattern()
+        self.assertEqual(0, len(pattern))
+
     def test_add_color_and_duration(self):
         pattern = Pattern()
         pattern.addColorAndDuration(self.red, 100)
         self.assertEqual((self.red, 100), (pattern.getPattern()[0].color, pattern.getPattern()[0].duration))
 
     def test_add_color_and_durations(self):
-        pattern = Pattern()
-        pattern.addColorAndDuration(self.red, 100)
-        pattern.addColorAndDuration(self.green, 200)
-        self.assertEqual([(self.red, 100), (self.green, 200)],
-                         [(pattern.getPattern()[0].color, pattern.getPattern()[0].duration),
-                          (pattern.getPattern()[1].color, pattern.getPattern()[1].duration)])
-
-    def test_add_color_and_durations2(self):
         pattern = Pattern()
         pattern.addColorAndDuration(self.red, 100)
         pattern.addColorAndDuration(self.green, 200)

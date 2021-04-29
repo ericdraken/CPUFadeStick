@@ -57,5 +57,5 @@ class RangeInt(int):
         return str(self._val)
 
     def __repr__(self):
-        return f"RangeInt({self._nice_name}, [{self._min}..{self._max}]: {self._val})"
+        return f"{self.__class__.__name__}({self._nice_name}, [{self._min}..{self._max}]: {self._val})"
 
