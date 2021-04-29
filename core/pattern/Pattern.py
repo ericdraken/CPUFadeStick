@@ -28,9 +28,10 @@ class Pattern:
     def __new__(cls) -> Any:
         logging.basicConfig(level=logging.INFO)
         cls.log = logging.getLogger(cls.__name__)
+        return super().__new__(cls)
 
     def __init__(self) -> None:
-        _pattern: List[ColorDuration] = []
+        self._pattern: List[ColorDuration] = []
 
     def __repr__(self):
         return "<" + self.__str__() + ">"
