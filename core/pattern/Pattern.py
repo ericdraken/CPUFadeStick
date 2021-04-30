@@ -21,9 +21,9 @@ class ColorDuration:
 
 
 class Pattern:
-    MAX_BUFFER_SIZE: Final = 62
+    MAX_BUFFER_SIZE: Final[int] = (256 - 2) // 4
     DURATION_RESOLUTION: Final = 10.0
-    PATTERN_BUFFER_BYTE_LENGTH: Final = 1 + 1 + (4 * MAX_BUFFER_SIZE)  # (count + (r, g, b, delay) * x)
+    PATTERN_BUFFER_BYTE_LENGTH: Final = 1 + (4 * MAX_BUFFER_SIZE)  # (count + (r, g, b, delay_ms) * x)
 
     _pattern: List[ColorDuration]
 
@@ -61,10 +61,10 @@ class Pattern:
         data[0] = len(self._pattern)
 
         for i, p in enumerate(self._pattern):
-            data[(i*4)+1:(i*4)+5] = [
-                p.color.red,
-                p.color.green,
-                p.color.blue,
+            data[(i*4)+1:(i*4)+4] = [
+                int(p.color.red),
+                int(p.color.green),
+                int(p.color.blue),
                 round(p.duration / self.DURATION_RESOLUTION)
             ]
         return data[:]

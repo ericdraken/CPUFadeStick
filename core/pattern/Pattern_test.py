@@ -79,7 +79,7 @@ class TestPattern(TestCase):
 
     def test_get_int_pattern_empty(self):
         p = Pattern()
-        self.assertEqual([], p.getIntPattern())
+        self.assertEqual([0] * Pattern.PATTERN_BUFFER_BYTE_LENGTH, p.getIntPattern())
 
     def test_get_int_pattern(self):
         p = Pattern()

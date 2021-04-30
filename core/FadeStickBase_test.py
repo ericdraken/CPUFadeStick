@@ -74,7 +74,7 @@ class TestFadeStickBase(TestCase):
                         setRGB := self.device.setColor(color),
                         getRGB := self.device.getColor(),
                         self.assertEqual(setRGB, getRGB, f"Testing color {color}"),
-                        time.sleep(0.2)  # Pleasing delay to see the colors
+                        time.sleep(0.2)  # Pleasing delay_ms to see the colors
                     ) else None)
             )
         self.assertTrue(unittest.TextTestRunner().run(suite).wasSuccessful())

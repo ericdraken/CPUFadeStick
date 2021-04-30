@@ -6,7 +6,7 @@ from typing import Final
 
 from multipledispatch import dispatch
 
-from constants.FadeStickConsts import FS_SERIAL_INDEX, FS_REPORT_ID
+from constants.FadeStickConsts import FS_SERIAL_INDEX, FS_MODE_COLOR
 from exceptions.FadeStickColorException import FadeStickColorException
 from utils.Colors import invertRGB, colorToHex, hexToRGB
 from utils.Decorators import abstract
@@ -46,28 +46,28 @@ class FadeStickBase(object):
     @dispatch(RGB)
     def setColor(self, rgb: RGB) -> RGB:
         if self.inverse:
-            rgb = invertRGB(rgb)
+            rgb: RGB = invertRGB(rgb)
 
-        control_string = bytes(bytearray([0, rgb.red, rgb.green, rgb.blue]))
+        payload = bytes([rgb.red, rgb.green, rgb.blue])  #
 
-        from core.FadeStickUSB import sendControlTransfer
-        sendControlTransfer(self, 0x20, 0x9, FS_REPORT_ID, 0, control_string)
+        from core.FadeStickUSB import sendControlTransfer, R_USB_SEND, R_SET_CONFIG
+        sendControlTransfer(self, R_USB_SEND, R_SET_CONFIG, FS_MODE_COLOR, payload)
         return rgb
 
     def turnOff(self) -> None:
         self.setColor(0, 0, 0)
 
     def getColor(self) -> RGB:
-        from core.FadeStickUSB import sendControlTransfer
-        device_bytes = sendControlTransfer(self, 0x80 | 0x20, 0x1, 0x0001, 0, 33)
+        from core.FadeStickUSB import sendControlTransfer, R_USB_RECV, R_CLEAR_FEATURE
+        device_bytes = sendControlTransfer(self, R_USB_RECV, R_CLEAR_FEATURE, FS_MODE_COLOR, dataOrLength=4)
         rgb = RGB(device_bytes[1], device_bytes[2], device_bytes[3])
         return invertRGB(rgb) if self.inverse else rgb
 
     @abstract
-    def blink(self, color: RGB, blinks: int = 1, delay: int = 500): ...
+    def blink(self, color: RGB, blinks: int = 1, delay: int = 500) -> None: ...
 
     @abstract
-    def morph(self, end_color: RGB, duration: int = 1000, steps: int = 50): ...
+    def morph(self, end_color: RGB, duration: int = 1000, steps: int = 50) -> None: ...
 
     @abstract
-    def pulse(self, color: RGB, pulses: int = 1, duration: int = 1000, steps: int = 50): ...
+    def pulse(self, color: RGB, pulses: int = 1, duration: int = 1000, steps: int = 50) -> None: ...

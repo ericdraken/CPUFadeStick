@@ -18,9 +18,9 @@ class BlinkStick(FadeStickBase):
         super().__init__(fs.device)
 
     # Original blink logic that slows the CPU
-    def blink(self, color: RGB, blinks: int = 1, delay: int = 500):
+    def blink(self, color: RGB, blinks: int = 1, delay: int = 500) -> None:
         blinks = RangeInt(blinks, 1, self.MAX_BLINKS, "blinks")
-        delay = RangeInt(delay, 1, self.MAX_DELAY, "delay")
+        delay = RangeInt(delay, 1, self.MAX_DELAY, "delay_ms")
 
         ms_delay = float(delay) / float(1000)
         for x in range(blinks):
@@ -31,7 +31,7 @@ class BlinkStick(FadeStickBase):
             self.turnOff()
 
     # Original morph logic that slows the CPU
-    def morph(self, end_color: RGB, duration: int = 1000, steps: int = 50):
+    def morph(self, end_color: RGB, duration: int = 1000, steps: int = 50) -> None:
         duration = RangeInt(duration, 1, self.MAX_DURATION, "duration")
         steps = RangeInt(steps, 1, self.MAX_STEPS, "steps")
 
@@ -57,7 +57,7 @@ class BlinkStick(FadeStickBase):
         self.setColor(end_color)
 
     # Original pulse logic that slows the CPU
-    def pulse(self, color: RGB, pulses: int = 1, duration: int = 1000, steps: int = 50):
+    def pulse(self, color: RGB, pulses: int = 1, duration: int = 1000, steps: int = 50) -> None:
         pulses = RangeInt(pulses, 1, self.MAX_PULSES, "pulses")
         duration = RangeInt(duration, 1, self.MAX_DURATION, "duration")
         steps = RangeInt(steps, 1, self.MAX_STEPS, "steps")

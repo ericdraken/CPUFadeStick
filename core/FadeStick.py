@@ -1,5 +1,7 @@
 #  Copyright (c) Eric Draken, 2021.
 from __future__ import annotations
+
+from constants.FadeStickConsts import FS_MODE_PATTERN
 from core.FadeStickBase import FadeStickBase
 from core.pattern.Pattern import Pattern
 from utils.Colors import BLACK
@@ -17,25 +19,27 @@ class FadeStick(FadeStickBase):
     def __init__(self, fs: FadeStickBase = None):
         super().__init__(fs.device)
 
-    def blink(self, color: RGB, blinks: int = 1, delay: int = 500):
+    def blink(self, color: RGB, blinks: int = 1, delay_ms: int = 500) -> None:
         blinks = RangeInt(blinks, 1, self.MAX_BLINKS, "blinks")
-        delay = RangeInt(delay, 1, self.MAX_DELAY, "delay")
+        delay_ms = RangeInt(delay_ms, 1, self.MAX_DELAY, "delay_ms")
 
         pattern = Pattern()
-        ms_delay: int = round(float(delay) / float(1000))
         for x in range(blinks):
             if x:
-                pattern.addColorAndDuration(BLACK, ms_delay)
-            pattern.addColorAndDuration(color, ms_delay)
-            pattern.addColorAndDuration(BLACK, 0)
+                pattern.addColorAndDuration(BLACK, delay_ms)
+            pattern.addColorAndDuration(color, delay_ms)
+        pattern.addColorAndDuration(BLACK, 0)
 
         # Send the pattern to the FadeStick
+        payload = pattern.getBytePattern()
 
+        from core.FadeStickUSB import sendControlTransfer, R_USB_SEND, R_SET_CONFIG
+        sendControlTransfer(self, R_USB_SEND, R_SET_CONFIG, FS_MODE_PATTERN, payload)
 
-    def morph(self, end_color: RGB, duration: int = 1000, steps: int = 50):
+    def morph(self, end_color: RGB, duration: int = 1000, steps: int = 50) -> None:
         super().morph(end_color, duration, steps)
 
-    def pulse(self, color: RGB, pulses: int = 1, duration: int = 1000, steps: int = 50):
+    def pulse(self, color: RGB, pulses: int = 1, duration: int = 1000, steps: int = 50) -> None:
         super().pulse(color, pulses, duration, steps)
 
 

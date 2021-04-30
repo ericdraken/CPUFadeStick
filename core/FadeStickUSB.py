@@ -1,14 +1,28 @@
 #  Copyright (c) Eric Draken, 2021.
 from __future__ import annotations
 
+from typing import Optional, List, Final, Union
+
 import usb
-from typing import Optional, List, Any
 from multipledispatch import dispatch
+
 from constants.FadeStickConsts import FS_VENDOR_ID, FS_PRODUCT_ID, FS_MESSAGE_ID, \
     FS_SERIAL_INDEX, FS_MANUFACTURER_INDEX, FS_DESCRIPTION_INDEX
+from core.FadeStickBase import FadeStickBase
 from exceptions.FadeStickUSBException import FadeStickUSBException
 from utils.Types import USBDevice
-from core.FadeStickBase import FadeStickBase
+
+# REF: https://www.beyondlogic.org/usbnutshell/usb6.shtml
+# mRequestType
+RT_HOST_TO_DEVICE: Final = 0x0  # Send
+RT_DEVICE_TO_HOST: Final = 0x80  # Receive
+RT_TYPE_VENDOR: Final = 0x20  # Vendor
+R_USB_SEND: Final = RT_HOST_TO_DEVICE | RT_TYPE_VENDOR
+R_USB_RECV: Final = RT_DEVICE_TO_HOST | RT_TYPE_VENDOR
+
+# mRequest
+R_SET_CONFIG: Final = 0x9
+R_CLEAR_FEATURE: Final = 0x1
 
 
 def setUSBUDevRule():
@@ -27,11 +41,13 @@ def setUSBUDevRule():
           "udevadm control --reload-rules && udevadm trigger")
     return 0
 
+
 def findAllFadeSticks() -> List[FadeStickBase]:
     results: List[FadeStickBase] = []
     for d in _findFadeSticksAsGenerator():
         results.extend([FadeStickBase(device=d)])
     return results
+
 
 def findFirstFadeStick() -> FadeStickBase:
     device: USBDevice = next(_findFadeSticksAsGenerator())
@@ -39,6 +55,7 @@ def findFirstFadeStick() -> FadeStickBase:
         return FadeStickBase(device=device)
 
     raise FadeStickUSBException("No FadeSticks found")
+
 
 def findFadeStickBySerial(serial: str) -> FadeStickBase:
     devices: List[USBDevice] = []
@@ -53,20 +70,25 @@ def findFadeStickBySerial(serial: str) -> FadeStickBase:
     if devices:
         return FadeStickBase(device=devices[0])
 
+
 def _findFadeSticksAsGenerator() -> Optional[USBDevice]:
     return usb.core.find(find_all=True, idVendor=FS_VENDOR_ID, idProduct=FS_PRODUCT_ID)
+
 
 @dispatch(FadeStickBase, int)
 def getUSBString(fs: FadeStickBase, index: int) -> str:
     return getUSBString(fs.device, index, "")
 
+
 @dispatch(USBDevice, int)
 def getUSBString(device: USBDevice, index: int) -> str:
     return getUSBString(device, index, "")
 
+
 @dispatch(USBDevice, int, str)
 def getUSBString(fs: FadeStickBase, index: int, serial: str) -> str:
     return getUSBString(fs.device, index, serial)
+
 
 @dispatch(USBDevice, int, str)
 def getUSBString(device: USBDevice, index: int, serial: str) -> str:
@@ -92,11 +114,14 @@ def getUSBString(device: USBDevice, index: int, serial: str) -> str:
         else:
             raise FadeStickUSBException(f"Could not communicate with FadeStick {device} - it may have been removed")
 
+
 def getManufacturer(fs: FadeStickBase):
     return getUSBString(fs.device, FS_MANUFACTURER_INDEX)
 
+
 def getDescription(fs: FadeStickBase):
     return getUSBString(fs.device, FS_DESCRIPTION_INDEX)
+
 
 def openUSBDevice(device: USBDevice):
     if device is None:
@@ -110,15 +135,23 @@ def openUSBDevice(device: USBDevice):
 
     return True
 
-def sendControlTransfer(fs: FadeStickBase, requestType: int,
-                        request: int, value: Any, index: int,
-                        dataOrLength: Any = None, timeout: int = 5000):
+
+def sendControlTransfer(fs: FadeStickBase,
+                        requestType: int,
+                        request: int,
+                        valueOrMode: int,
+                        dataOrLength: Union[bytes, int],
+                        timeout: int = 5000):
+    # Widen the data and add the value
+    if type(dataOrLength) is bytes:
+        dataOrLength = bytes([valueOrMode]) + dataOrLength
+
     try:
-        return fs.device.ctrl_transfer(requestType, request, value, index, dataOrLength, timeout)
+        return fs.device.ctrl_transfer(requestType, request, valueOrMode, 0, dataOrLength, timeout)
     except usb.USBError:
         # Could not communicate with FadeStick device
         # attempt to find it again based on serial
         if findFadeStickBySerial(fs.serial):
-            return fs.device.ctrl_transfer(requestType, request, value, index, dataOrLength, timeout)
+            return fs.device.ctrl_transfer(requestType, request, valueOrMode, 0, dataOrLength, timeout)
         else:
             raise FadeStickUSBException(f"Could not communicate with FadeStick {fs.serial} - it may have been removed")
