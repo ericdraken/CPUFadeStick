@@ -21,9 +21,10 @@ class ColorDuration:
 
 
 class Pattern:
-    MAX_BUFFER_SIZE: Final[int] = (256 - 2) // 4
     DURATION_RESOLUTION: Final = 10.0
-    PATTERN_BUFFER_BYTE_LENGTH: Final = 1 + (4 * MAX_BUFFER_SIZE)  # (count + (r, g, b, delay_ms) * x)
+    # (count + (r, g, b, delay_ms) * count)
+    PATTERN_BUFFER_BYTE_LENGTH: Final = 255 - 2
+    MAX_BUFFER_SIZE: Final[int] = (PATTERN_BUFFER_BYTE_LENGTH - 2) // 4
 
     _pattern: List[ColorDuration]
 
