@@ -70,7 +70,3 @@ class TestFadeStick(TestCase):
     def test_morph_too_long(self):
         with self.assertRaises(RangeIntException):
             self.device.morph(BLUE, 255 * 10 + 1, 1)
-
-    @disabled
-    def test_pulse(self):
-        self.fail()

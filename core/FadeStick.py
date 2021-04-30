@@ -38,11 +38,8 @@ class FadeStick(FadeStickBase):
             pattern.addColorAndDuration(color, delay_ms)
         pattern.addColorAndDuration(OFF, 0)
 
-        # Send the pattern to the FadeStick
-        payload = pattern.getBytePattern()
-
         from core.FadeStickUSB import sendControlTransfer, R_USB_SEND, R_SET_CONFIG
-        sendControlTransfer(self, R_USB_SEND, R_SET_CONFIG, FS_MODE_PATTERN, payload)
+        sendControlTransfer(self, R_USB_SEND, R_SET_CONFIG, FS_MODE_PATTERN, pattern.getBytePattern())
 
     # noinspection DuplicatedCode
     def morph(self, end_color: RGB, duration: int = 1000, steps: int = MAX_STEPS) -> None:
@@ -62,23 +59,6 @@ class FadeStick(FadeStickBase):
             b = (b_start * (1 - d)) + (b_end * d)
             pattern.addColorAndDuration(RGB(r, g, b), ms_delay)
 
-        # Send the pattern to the FadeStick
-        payload = pattern.getBytePattern()
-
-        from core.FadeStickUSB import sendControlTransfer
-        from core.FadeStickUSB import R_USB_SEND
-        from core.FadeStickUSB import R_SET_CONFIG
-        sendControlTransfer(self, R_USB_SEND, R_SET_CONFIG, FS_MODE_PATTERN, payload)
-
-
-    # def pulse(self, color: RGB, pulses: int = 1, duration: int = 1000, steps: int = 50) -> None:
-    #     pulses = RangeInt(pulses, 1, self.MAX_PULSES, "pulses")
-    #     duration = RangeInt(duration, 1, self.MAX_DURATION, "duration")
-    #     steps = RangeInt(steps, 1, self.MAX_STEPS, "steps")
-    #
-    #     self.turnOff()
-    #     for x in range(pulses):
-    #         self.morph(color, duration=duration, steps=steps)
-    #         self.morph(OFF, duration=duration, steps=steps)
-
+        from core.FadeStickUSB import sendControlTransfer, R_USB_SEND, R_SET_CONFIG
+        sendControlTransfer(self, R_USB_SEND, R_SET_CONFIG, FS_MODE_PATTERN, pattern.getBytePattern())
 
