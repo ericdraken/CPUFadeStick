@@ -33,10 +33,11 @@ def main():
     fs.turnOff()
 
 if __name__ == '__main__':
-    script_path = str(os.path.dirname(os.path.abspath(__file__)))
-    sha1 = hashlib.sha1(script_path.encode("utf-8")).hexdigest()
-    app_name = f"cpufadestick-{sha1}"
+    # script_path = str(os.path.dirname(os.path.abspath(__file__)))
+    # print(script_path)
+    # sha1 = hashlib.sha1(script_path.encode("utf-8")).hexdigest()
+    # app_name = f"cpufadestick-{sha1}"
+    app_name = f"cpufadestick"
     pidfile = f"/tmp/{app_name}"
-    print(pidfile)
     daemon = Daemonize(app=app_name, pid=pidfile, action=main)
     daemon.start()
