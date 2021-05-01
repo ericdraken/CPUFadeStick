@@ -1,6 +1,4 @@
 #  Copyright (c) Eric Draken, 2021.
-import hashlib
-import os
 import sys
 import time
 from typing import Final

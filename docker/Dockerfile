@@ -2,7 +2,7 @@ FROM python:3.8-slim AS nuitkabuilder
 
 RUN apt-get update &&\
     apt-get install -y \
-    build-essential ccache libfuse2 file
+    curl build-essential ccache libfuse2 file
     # Note, fuse isn't needed, but some prerequisite logic checks for it
     # file is needed if ARCH isn't set
     # See: https://github.com/AppImage/AppImageKit/blob/8bbf694455d00f48d835f56afaa1dabcd9178ba6/src/appimagetool.c#L726
@@ -23,12 +23,13 @@ USER nuitka
 
 WORKDIR /workdir
 
-RUN DEST=/home/${user}/.local/share/Nuitka/appimagetool-x86_64.AppImage/x86_64/12/appimagetool-x86_64.AppImage &&\
-    curl -L \
+ARG APPIMAGE=/home/${user}/.local/share/Nuitka/appimagetool-x86_64.AppImage/x86_64/12/appimagetool-x86_64.AppImage
+
+RUN curl -L \
     https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage \
-    -o ${DEST} \
+    -o ${APPIMAGE} \
     --create-dirs &&\
-    chmod +x ${DEST}
+    chmod +x ${APPIMAGE}
 
 # Avoid the whole Fuse-Docker fiasco
 # REF: https://docs.appimage.org/user-guide/troubleshooting/fuse.html
@@ -50,8 +51,10 @@ CMD pip3 install --user -r requirements.txt &&\
     --lto \
     --linux-onefile-icon=/icon.xpm \
     --output-dir=build \
-    --remove-output \
+#    --remove-output \
     --assume-yes-for-downloads \
     main.py &&\
-    cp build/main.bin cpufadestick &&\
-    file cpufadestick
+    mv build/main.bin cpufadestick &&\
+    file cpufadestick &&\
+    echo "Success!"
+
