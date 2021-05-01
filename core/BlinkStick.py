@@ -21,7 +21,7 @@ class BlinkStick(FadeStickBase):
         string = f"{self.__class__.__name__}[{self.device if self.device else ''}]"
         return string
 
-    def __init__(self, fs: FadeStickBase = None):
+    def __init__(self, fs: FadeStickBase):
         super().__init__(fs.device)
 
     # Original blink logic that slows the CPU
@@ -54,7 +54,7 @@ class BlinkStick(FadeStickBase):
             r = (r_start * (1 - d)) + (r_end * d)
             g = (g_start * (1 - d)) + (g_end * d)
             b = (b_start * (1 - d)) + (b_end * d)
-            gradient.append(RGB(r, g, b))
+            gradient.append(RGB(int(r), int(g), int(b)))
         gradient.append(end_color)
 
         ms_delay = float(duration) / float(1000 * steps)

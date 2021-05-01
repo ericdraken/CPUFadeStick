@@ -24,7 +24,7 @@ class FadeStick(FadeStickBase):
         string = f"{self.__class__.__name__}[{self.device if self.device else ''}]"
         return string
 
-    def __init__(self, fs: FadeStickBase = None):
+    def __init__(self, fs: FadeStickBase):
         super().__init__(fs.device)
 
     def blink(self, color: RGB, blinks: int = 1, delay_ms: int = 500) -> None:
@@ -57,7 +57,7 @@ class FadeStick(FadeStickBase):
             r = (r_start * (1 - d)) + (r_end * d)
             g = (g_start * (1 - d)) + (g_end * d)
             b = (b_start * (1 - d)) + (b_end * d)
-            pattern.addColorAndDuration(RGB(r, g, b), ms_delay)
+            pattern.addColorAndDuration(RGB(int(r), int(g), int(b)), ms_delay)
 
         from core.FadeStickUSB import sendControlTransfer, R_USB_SEND, R_SET_CONFIG
         sendControlTransfer(self, R_USB_SEND, R_SET_CONFIG, FS_MODE_PATTERN, pattern.getBytePattern())

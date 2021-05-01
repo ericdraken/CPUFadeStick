@@ -1,5 +1,6 @@
 #  Copyright (c) Eric Draken, 2021.
 import re
+from math import floor
 from typing import Final, Dict
 
 from exceptions.FadeStickColorException import FadeStickColorException
@@ -55,6 +56,13 @@ def colorToRGB(color: str) -> RGB:
 
 def invertRGB(rgb: RGB) -> RGB:
     return RGB(255 - rgb.red, 255 - rgb.green, 255 - rgb.blue)
+
+def scaleToRGB(value: float, minIsGreen: bool = True, minScale: float = 0.0, maxScale: float = 1.0) -> RGB:
+    boundedValue = min(maxScale, max(minScale, value))
+    red = int(floor(boundedValue * 255))
+    green = int(floor((1.0 - boundedValue) * 255))
+    return RGB(red, green, 0) if minIsGreen else RGB(green, red, 0)
+
 
 # Named colors
 RED: Final = colorToRGB("red")
