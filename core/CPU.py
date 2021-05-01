@@ -59,17 +59,17 @@ class CPU:
 
         return cpu_percentage
 
-if __name__ == "__main__":
-    cpu: Final = CPU()
-    fs = FadeStick(findFirstFadeStick())
-    period_ms = 1000
-    for _ in range(30):
-        cpu_per: float = cpu.getCPUTimeSlicePercentage()
-        print(f"CPU {cpu_per * 100.0:.2f}%")
-        try:
-            fs.morph(scaleToRGB(cpu_per), period_ms)
-            time.sleep(period_ms / 1000.0)
-        except USBError:
-            # Try to get another handle if the CPU load is too high
-            fs = FadeStick(findFirstFadeStick())
-    fs.turnOff()
+# if __name__ == "__main__":
+#     cpu: Final = CPU()
+#     fs = FadeStick(findFirstFadeStick())
+#     period_ms = 1000
+#     for _ in range(30):
+#         cpu_per: float = cpu.getCPUTimeSlicePercentage()
+#         print(f"CPU {cpu_per * 100.0:.2f}%")
+#         try:
+#             fs.morph(scaleToRGB(cpu_per), period_ms)
+#             time.sleep(period_ms / 1000.0)
+#         except USBError:
+#             # Try to get another handle if the CPU load is too high
+#             fs = FadeStick(findFirstFadeStick())
+#     fs.turnOff()
