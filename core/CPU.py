@@ -1,13 +1,6 @@
 #  Copyright (c) Eric Draken, 2021.
 
-import time
-from typing import Tuple, List, Final
-
-from usb.core import USBError
-
-from core.FadeStick import FadeStick
-from core.FadeStickUSB import findFirstFadeStick
-from utils.Colors import scaleToRGB
+from typing import Tuple, List
 
 
 class CPU:
