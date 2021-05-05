@@ -52,15 +52,20 @@ class FadeStickBase(object):
 
     def getColor(self) -> RGB:
         from core.FadeStickUSB import sendControlTransfer, R_USB_RECV, R_CLEAR_FEATURE
-        device_bytes = sendControlTransfer(self, R_USB_RECV, R_CLEAR_FEATURE, FS_MODE_COLOR, dataOrLength=4)
+        device_bytes = sendControlTransfer(self, R_USB_RECV, R_CLEAR_FEATURE,
+                                           FS_MODE_COLOR, dataOrLength=4)
         rgb = RGB(device_bytes[1], device_bytes[2], device_bytes[3])
         return invertRGB(rgb) if self.inverse else rgb
 
     @abstract
-    def blink(self, color: RGB, blinks: int = 1, delay: int = 500) -> None: ...
+    def blink(self, color: RGB, blinks: int = 1, delay: int = 500) -> None:
+        ...
 
     @abstract
-    def morph(self, end_color: RGB, duration: int = 1000, steps: int = 50) -> None: ...
+    def morph(self, end_color: RGB, duration: int = 1000, steps: int = 50) -> None:
+        ...
 
     @abstract
-    def pulse(self, color: RGB, pulses: int = 1, duration: int = 1000, steps: int = 50) -> None: ...
+    def pulse(self, color: RGB, pulses: int = 1, duration: int = 1000,
+              steps: int = 50) -> None:
+        ...
