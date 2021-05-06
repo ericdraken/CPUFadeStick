@@ -29,7 +29,8 @@ def setUSBUDevRule():
     try:
         filename = "/etc/udev/rules.d/85-fadestick.rules"
         file = open(filename, 'w')
-        file.write('SUBSYSTEM=="usb", ATTR{idVendor}=="20a0", ATTR{idProduct}=="41e5", MODE:="0666"')
+        file.write(
+            'SUBSYSTEM=="usb", ATTR{idVendor}=="20a0", ATTR{idProduct}=="41e5", MODE:="0666"')
         file.close()
         print(f"Rule added to {filename}")
     except IOError as e:
@@ -50,9 +51,8 @@ def findAllFadeSticks() -> List[FadeStickBase]:
 
 
 def findFirstFadeStick() -> FadeStickBase:
-    device: USBDevice = next(_findFadeSticksAsGenerator())
-    if device:
-        return FadeStickBase(device=device)
+    for d in _findFadeSticksAsGenerator():
+        return FadeStickBase(device=d)
 
     raise FadeStickUSBException("No FadeSticks found")
 
@@ -110,9 +110,11 @@ def getUSBString(device: USBDevice, index: int, serial: str) -> str:
             if device:
                 return usb.util.get_string(device, index, FS_MESSAGE_ID)
             else:
-                raise FadeStickUSBException(f"Could not communicate with FadeStick {serial} - it may have been removed")
+                raise FadeStickUSBException(
+                    f"Could not communicate with FadeStick {serial} - it may have been removed")
         else:
-            raise FadeStickUSBException(f"Could not communicate with FadeStick {device} - it may have been removed")
+            raise FadeStickUSBException(
+                f"Could not communicate with FadeStick {device} - it may have been removed")
 
 
 def getManufacturer(fs: FadeStickBase):
@@ -147,11 +149,14 @@ def sendControlTransfer(fs: FadeStickBase,
         dataOrLength = bytes([valueOrMode]) + dataOrLength
 
     try:
-        return fs.device.ctrl_transfer(requestType, request, valueOrMode, 0, dataOrLength, timeout)
+        return fs.device.ctrl_transfer(requestType, request, valueOrMode, 0,
+                                       dataOrLength, timeout)
     except usb.USBError:
         # Could not communicate with FadeStick device
         # attempt to find it again based on serial
         if findFadeStickBySerial(fs.serial):
-            return fs.device.ctrl_transfer(requestType, request, valueOrMode, 0, dataOrLength, timeout)
+            return fs.device.ctrl_transfer(requestType, request, valueOrMode, 0,
+                                           dataOrLength, timeout)
         else:
-            raise FadeStickUSBException(f"Could not communicate with FadeStick {fs.serial} - it may have been removed")
+            raise FadeStickUSBException(
+                f"Could not communicate with FadeStick {fs.serial} - it may have been removed")

@@ -2,10 +2,12 @@
 import unittest
 from typing import List
 from unittest import TestCase
+
 from constants.FadeStickConsts import FS_MANUFACTURER, FS_USB_STRING, FS_SERIAL_INDEX
 from core.FadeStickBase import FadeStickBase
 from core.FadeStickUSB import USBDevice, findAllFadeSticks, _findFadeSticksAsGenerator, \
-    findFadeStickBySerial, findFirstFadeStick, getUSBString, getManufacturer, getDescription
+    findFadeStickBySerial, findFirstFadeStick, getUSBString, getManufacturer, \
+    getDescription
 
 
 class TestFadeStickUSB(TestCase):
