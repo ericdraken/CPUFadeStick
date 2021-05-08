@@ -7,8 +7,7 @@ from core.FadeStick import FadeStick
 from core.FadeStickUSB import findFirstFadeStick
 from core.pattern.Pattern import Pattern
 from exceptions.NumberExceptions import RangeIntException
-from utils.Colors import RED, GREEN, BLUE
-from utils.Decorators import disabled
+from utils.Colors import RED, GREEN, BLUE, OFF
 
 
 class TestFadeStick(TestCase):
@@ -51,9 +50,10 @@ class TestFadeStick(TestCase):
         duration = 1000
         self.device.setColor(RED)
         self.device.morph(BLUE, duration, 60)
-        time.sleep((duration / 1000.0) * 1.5)
+        time.sleep((duration / 1000.0) * 2)
         self.assertEqual(BLUE, self.device.getColor())
         self.device.turnOff()
+        self.assertEqual(OFF, self.device.getColor())
 
     def test_morph_default_steps(self):
         duration = 1000

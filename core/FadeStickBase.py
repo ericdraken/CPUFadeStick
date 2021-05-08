@@ -17,7 +17,7 @@ class FadeStickBase(object):
     device: USBDevice = None
     inverse: bool = False
 
-    def __init__(self, device: USBDevice):
+    def __init__(self, device: USBDevice = None):
         if device:
             from core.FadeStickUSB import openUSBDevice, getUSBString
             self.device: Final = device
