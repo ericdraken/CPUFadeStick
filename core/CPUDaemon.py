@@ -7,7 +7,8 @@ import struct
 import sys
 import threading
 import time
-from logging import handlers
+from logging import StreamHandler
+from logging.handlers import SysLogHandler
 from typing import Final, Union
 
 from daemon import daemon, pidfile
@@ -47,28 +48,40 @@ def get_message(fifo: int) -> str:
     return msg_content
 
 
-class CPUDaemon:
-    _formatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] %(message)s")
+def get_log_file_handles(logger):
+    """Get a list of file handle numbers from the logger to preserve"""
+    handles = []
+    # Unpack both lists into a final list
+    for handler in [*logger.parent.handlers, *logger.handlers]:
+        # Try both 'stream' and 'socket'
+        try:
+            handles.append(handler.stream.fileno())
+        except AttributeError:
+            handles.append(handler.socket.fileno())
+    assert handles
+    return handles
 
+
+class CPUDaemon:
     # Log to /var/log/syslog
-    _syslog_handler: Final = logging.handlers.SysLogHandler(
-        facility=logging.handlers.SysLogHandler.LOG_DAEMON, address="/dev/log")
-    _syslog_handler.setFormatter(_formatter)
+    _syslog_handler: Final = SysLogHandler(
+        facility=SysLogHandler.LOG_DAEMON, address="/dev/log")
     _syslog_handler.setLevel(logging.INFO)
 
-    _daemon_log: Final = logging.getLogger("daemon")
-    _daemon_log.addHandler(_syslog_handler)
-    _daemon_log.setLevel(logging.INFO)
-
     # Console logging
-    _console_handler: Final = logging.StreamHandler(sys.stdout)
-    _console_handler.setFormatter(_formatter)
+    _console_handler: Final = StreamHandler(sys.stdout)
     _console_handler.setLevel(logging.WARNING)
+
+    # noinspection PyArgumentList
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(name)s] [%(levelname)s] %(message)s",
+        handlers=[_syslog_handler]
+    )
 
     _main_log: Final = logging.getLogger("main")
     _main_log.addHandler(_console_handler)
-    _main_log.addHandler(_syslog_handler)
-    _main_log.setLevel(logging.INFO)
+    _daemon_log: Final = logging.getLogger("daemon")
 
     _app_name: Final = "cpufadestick"
     _pidpath: Final = os.path.join(f"/tmp/{_app_name}.pid")
@@ -88,7 +101,7 @@ class CPUDaemon:
             stdout=sys.stdout,
             stderr=sys.stderr,
             detach_process=True,
-            files_preserve=self._get_log_file_handles(self._daemon_log),
+            files_preserve=get_log_file_handles(self._daemon_log),
             signal_map={
                 signal.SIGTERM: self._end,
                 signal.SIGTSTP: self._end,
@@ -97,18 +110,6 @@ class CPUDaemon:
                 signal.SIGUSR2: self._status,
             }
         )
-
-    @staticmethod
-    def _get_log_file_handles(logger):
-        """Get a list of file handle numbers from the logger to preserve"""
-        handles = []
-        for handler in logger.parent.handlers:
-            # Try both 'stream' and 'socket'
-            try:
-                handles.append(handler.stream.fileno())
-            except AttributeError:
-                handles.append(handler.socket.fileno())
-        return handles
 
     # Daemon methods #
 
@@ -121,7 +122,7 @@ class CPUDaemon:
                 else:
                     msg = f"Daemon running. Current CPU load is {self._cpu_per * 100.0:.2f}% and is color {self._cur_color}."
 
-            self._daemon_log.debug(msg)
+            self._daemon_log.info(msg)
             # Pass messages from the daemon to the controller via a named pipe
             pipe = os.open(self._named_pipe, os.O_WRONLY)
             self._daemon_log.debug("Opened IPC pipe")
@@ -141,7 +142,7 @@ class CPUDaemon:
             return
 
         self._is_running = True
-        self._daemon_log.debug("Beginning FadeStick loop")
+        self._daemon_log.info("Daemon started")
         cpu: Final = CPU()
         fs: Union[FadeStick, None] = None
         period_ms = 1000
@@ -187,14 +188,14 @@ class CPUDaemon:
                             if fs.getColor() == OFF:
                                 break
                             else:
-                                time.sleep(
-                                    1)  # Don't flood FadeStick while it is processing
+                                time.sleep(1)  # Don't flood FadeStick while it is processing
                     except Exception as e:
                         self._daemon_log.error(e)
                     finally:
                         with self._lock:
                             self._is_running = False
                             self._fs_present = False
+            self._daemon_log.info("Daemon stopped")
 
     # Main methods #
 
