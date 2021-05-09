@@ -37,4 +37,16 @@ Plug in a FadeStick and run `./cpufadestick start`.
 
 ### Usage
 
+```shell
+Usage: cpufadestick [action]
+    start     : Start the daemon
+    stop      : Stop the daemon
+    kill      : Kill the daemon
+    restart   : Restart the daemon
+    status    : Get the daemon status
+```
 
+### Copyright
+
+Eric Draken, 2021\
+ericdraken.com
