@@ -11,7 +11,8 @@ from logging import StreamHandler
 from logging.handlers import SysLogHandler
 from typing import Final, Union
 
-from daemon import daemon, pidfile
+import daemon
+from lockfile.pidlockfile import PIDLockFile
 from usb.core import USBError
 
 from core.CPU import CPU
@@ -97,7 +98,7 @@ class CPUDaemon:
     def _get_context(self) -> daemon.DaemonContext:
         """Return a daemon context to use with 'with'"""
         return daemon.DaemonContext(
-            pidfile=pidfile.PIDLockFile(self._pidpath),
+            pidfile=PIDLockFile(self._pidpath),
             stdout=sys.stdout,
             stderr=sys.stderr,
             detach_process=True,
@@ -188,7 +189,8 @@ class CPUDaemon:
                             if fs.getColor() == OFF:
                                 break
                             else:
-                                time.sleep(1)  # Don't flood FadeStick while it is processing
+                                time.sleep(
+                                    1)  # Don't flood FadeStick while it is processing
                     except Exception as e:
                         self._daemon_log.error(e)
                     finally:
@@ -212,7 +214,7 @@ class CPUDaemon:
     def stop(self) -> str:
         self._main_log.info("Daemon stop requested")
         ctx = self._get_context()
-        pidf: pidfile.PIDLockFile = ctx.pidfile
+        pidf: PIDLockFile = ctx.pidfile
         if not pidf.read_pid():
             return "Daemon already stopped."
 
@@ -233,7 +235,7 @@ class CPUDaemon:
         # Give stop a chance to be graceful
         time.sleep(5)
         ctx = self._get_context()
-        pidf: pidfile.PIDLockFile = ctx.pidfile
+        pidf: PIDLockFile = ctx.pidfile
         pid = pidf.read_pid()
         if not pid:
             return "Daemon not running."

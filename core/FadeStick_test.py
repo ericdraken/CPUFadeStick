@@ -50,7 +50,7 @@ class TestFadeStick(TestCase):
         duration = 1000
         self.device.setColor(RED)
         self.device.morph(BLUE, duration, 60)
-        time.sleep((duration / 1000.0) * 2)
+        time.sleep((duration / 1000.0) * 3)
         self.assertEqual(BLUE, self.device.getColor())
         self.device.turnOff()
         self.assertEqual(OFF, self.device.getColor())
