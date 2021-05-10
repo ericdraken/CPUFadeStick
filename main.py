@@ -26,7 +26,7 @@ def main():
     elif cmd == "stop":
         print_if_not_none(daemon.stop())
     elif cmd == "kill":
-        print(daemon.kill())
+        print_if_not_none(daemon.kill())
     elif cmd == "restart":
         print("Restarting daemon.")
         print_if_not_none(daemon.restart())

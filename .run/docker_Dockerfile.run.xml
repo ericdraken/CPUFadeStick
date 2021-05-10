@@ -11,10 +11,6 @@
               <option name="containerPath" value="/workdir" />
               <option name="hostPath" value="$PROJECT_DIR$" />
             </DockerVolumeBindingImpl>
-            <DockerVolumeBindingImpl>
-              <option name="containerPath" value="$PROJECT_DIR$/../../../nuitka/.cache" />
-              <option name="hostPath" value="$PROJECT_DIR$/build/.ccache" />
-            </DockerVolumeBindingImpl>
           </list>
         </option>
       </settings>

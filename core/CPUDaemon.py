@@ -67,7 +67,7 @@ class CPUDaemon:
     # Log to /var/log/syslog
     _syslog_handler: Final = SysLogHandler(
         facility=SysLogHandler.LOG_DAEMON, address="/dev/log")
-    _syslog_handler.setLevel(logging.INFO)
+    _syslog_handler.setLevel(logging.DEBUG)
 
     # Console logging
     _console_handler: Final = StreamHandler(sys.stdout)
@@ -75,7 +75,7 @@ class CPUDaemon:
 
     # noinspection PyArgumentList
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format="%(asctime)s [%(name)s] [%(levelname)s] %(message)s",
         handlers=[_syslog_handler]
     )
@@ -98,10 +98,13 @@ class CPUDaemon:
     def _get_context(self) -> daemon.DaemonContext:
         """Return a daemon context to use with 'with'"""
         return daemon.DaemonContext(
+            chroot_directory=None,
+            working_directory='/tmp',
             pidfile=PIDLockFile(self._pidpath),
             stdout=sys.stdout,
             stderr=sys.stderr,
             detach_process=True,
+            prevent_core=True,
             files_preserve=get_log_file_handles(self._daemon_log),
             signal_map={
                 signal.SIGTERM: self._end,
@@ -156,10 +159,11 @@ class CPUDaemon:
                 # Handle the case when the USB is unplugged
                 if not fs:
                     try:
-                        with self._lock:
-                            fs = FadeStick(findFirstFadeStick())
-                            self._fs_present = True
-                    except FadeStickUSBException:
+                        fs = FadeStick(findFirstFadeStick())
+                        if fs:
+                            with self._lock:
+                                self._fs_present = True
+                    except (USBError, FadeStickUSBException):
                         with self._lock:
                             self._fs_present = False
                         time.sleep(5)
@@ -179,24 +183,25 @@ class CPUDaemon:
                 except Exception as e:
                     self._daemon_log.error(f"Daemon exception: {e}")
                     time.sleep(5)  # Don't flood syslog
+        except Exception as e:
+            self._daemon_log.error(f"Daemon fatal exception: {e}")
         finally:
-            with self._lock:
+            self._daemon_log.debug("Shutting down FadeStick")
+            try:
                 if self._fs_present:
-                    self._daemon_log.debug("Shutting down FadeStick")
-                    try:
-                        for _ in range(60):
-                            fs.turnOff()
-                            if fs.getColor() == OFF:
-                                break
-                            else:
-                                time.sleep(
-                                    1)  # Don't flood FadeStick while it is processing
-                    except Exception as e:
-                        self._daemon_log.error(e)
-                    finally:
-                        with self._lock:
-                            self._is_running = False
-                            self._fs_present = False
+                    for _ in range(60):
+                        fs.turnOff()
+                        if fs.isOff():
+                            break
+                        else:
+                            # Don't flood FadeStick while it is processing
+                            time.sleep(1)
+            except Exception as e:
+                self._daemon_log.error(f"Daemon shutdown error: {e}")
+            finally:
+                with self._lock:
+                    self._is_running = False
+                    self._fs_present = False
             self._daemon_log.info("Daemon stopped")
 
     # Main methods #
@@ -224,6 +229,10 @@ class CPUDaemon:
             self._main_log.debug(f"Sending {signal.SIGINT.name} to PID {pid}")
             os.kill(pid, signal.SIGINT)
             return "Daemon stopping."
+        except ProcessLookupError:
+            # Remove the lock file with prejudice
+            pidf.break_lock()
+            return "Daemon not running or was killed."
         except Exception as e:
             self._main_log.error(f"Daemon stop error: {e}")
             # No return message on purpose
@@ -288,6 +297,10 @@ class CPUDaemon:
                         self._main_log.error("Daemon did not respond in time.")
                 finally:
                     poll.unregister(pipe)
+            except ProcessLookupError:
+                # Remove the lock file with prejudice
+                self._get_context().pidfile.break_lock()
+                return "Daemon not running or was killed."
             finally:
                 os.close(pipe)
         finally:

@@ -42,14 +42,14 @@ class FadeStickBase(object):
         if self.inverse:
             rgb: RGB = invertRGB(rgb)
 
-        payload = bytes([rgb.red, rgb.green, rgb.blue])  #
+        payload = bytes([rgb.red, rgb.green, rgb.blue])
 
         from core.FadeStickUSB import sendControlTransfer, R_USB_SEND, R_SET_CONFIG
         sendControlTransfer(self, R_USB_SEND, R_SET_CONFIG, FS_MODE_COLOR, payload)
         return rgb
 
     def turnOff(self) -> None:
-        self.setColor(0, 0, 0)
+        self.setColor(Colors.OFF)
 
     def getColor(self) -> RGB:
         from core.FadeStickUSB import sendControlTransfer, R_USB_RECV, R_CLEAR_FEATURE
