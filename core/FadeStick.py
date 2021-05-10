@@ -27,6 +27,16 @@ class FadeStick(FadeStickBase):
     def __init__(self, fs: FadeStickBase):
         super().__init__(fs.device)
 
+    def _get_buffer_bytes(self):
+        from core.FadeStickUSB import sendControlTransfer, R_USB_RECV, R_SET_CONFIG
+        return sendControlTransfer(self, R_USB_RECV, R_SET_CONFIG,
+                                   FS_MODE_PATTERN, Pattern.PATTERN_BUFFER_BYTE_LENGTH)
+
+    def isOff(self) -> bool:
+        # If the FadeStick is processing a pattern (thus not off),
+        # then an empty buffer is returned.
+        return super().isOff() and len(list(self._get_buffer_bytes())) != 0
+
     def blink(self, color: RGB, blinks: int = 1, delay_ms: int = 500) -> None:
         blinks = RangeInt(blinks, 1, self.MAX_BLINKS, "blinks")
         delay_ms = RangeInt(delay_ms, 1, self.MAX_DELAY, "delay_ms")
@@ -61,4 +71,3 @@ class FadeStick(FadeStickBase):
 
         from core.FadeStickUSB import sendControlTransfer, R_USB_SEND, R_SET_CONFIG
         sendControlTransfer(self, R_USB_SEND, R_SET_CONFIG, FS_MODE_PATTERN, pattern.getBytePattern())
-

@@ -35,20 +35,29 @@ class TestFadeStick(TestCase):
             self.device.turnOff()
             time.sleep(0.5)
 
+    def test__get_buffer_bytes(self):
+        self.device.blink(RED, 2, 1000)
+
+        for i in range(4 * 3):
+            buffer = self.device._get_buffer_bytes()
+            self.assertEqual(0, len(list(buffer)))
+            time.sleep(0.25)
+
+        time.sleep(0.5)
+        buffer = self.device._get_buffer_bytes()
+        self.assertNotEqual(0, len(list(buffer)))
+
     def test_blink(self):
         self.device.blink(RED, 2, 500)
-        time.sleep(0.5 * 4)  # TODO: Remove this when we confirm FS is off
 
     def test_blink2(self):
         self.device.blink(GREEN, 3, 100)
-        time.sleep(0.5 * 4)  # TODO: Remove this when we confirm FS is off
 
     def test_blink_many_steps(self):
         with self.assertRaises(RangeIntException):
             self.device.blink(BLUE, Pattern.MAX_BUFFER_SIZE // 2 + 1, 100)
 
     def test_morph(self):
-        self.assertTrue(self.device.isOff())
         duration = 1000
         self.device.setColor(RED)
         self.assertEqual(RED, self.device.getColor())
@@ -59,7 +68,6 @@ class TestFadeStick(TestCase):
         self.assertEqual(OFF, self.device.getColor())
 
     def test_morph_default_steps(self):
-        self.assertTrue(self.device.isOff())
         duration = 1000
         self.device.setColor(RED)
         self.assertEqual(RED, self.device.getColor())
