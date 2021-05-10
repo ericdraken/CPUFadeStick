@@ -7,6 +7,7 @@ from multipledispatch import dispatch
 
 from constants.FadeStickConsts import FS_SERIAL_INDEX, FS_MODE_COLOR
 from exceptions.FadeStickColorException import FadeStickColorException
+from utils import Colors
 from utils.Colors import invertRGB, colorToHex, hexToRGB
 from utils.Decorators import abstract
 from utils.Types import RGB, USBDevice
@@ -56,6 +57,9 @@ class FadeStickBase(object):
                                            FS_MODE_COLOR, dataOrLength=4)
         rgb = RGB(device_bytes[1], device_bytes[2], device_bytes[3])
         return invertRGB(rgb) if self.inverse else rgb
+
+    def isOff(self) -> bool:
+        return self.getColor() == Colors.OFF
 
     @abstract
     def blink(self, color: RGB, blinks: int = 1, delay: int = 500) -> None:

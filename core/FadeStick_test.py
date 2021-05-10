@@ -24,42 +24,47 @@ class TestFadeStick(TestCase):
     def tearDownClass(cls) -> None:
         super().tearDownClass()
         if cls.device:
-            cls.device.turnOff()
+            while not cls.device.isOff():
+                cls.device.turnOff()
+                time.sleep(0.3)
 
     def setUp(self) -> None:
         super().setUp()
-        if self.device:
+        self.assertTrue(self.device)
+        while not self.device.isOff():
             self.device.turnOff()
-
-    def tearDown(self) -> None:
-        super().tearDown()
-        if self.device:
-            self.device.turnOff()
+            time.sleep(0.5)
 
     def test_blink(self):
         self.device.blink(RED, 2, 500)
+        time.sleep(0.5 * 4)  # TODO: Remove this when we confirm FS is off
 
     def test_blink2(self):
         self.device.blink(GREEN, 3, 100)
+        time.sleep(0.5 * 4)  # TODO: Remove this when we confirm FS is off
 
     def test_blink_many_steps(self):
         with self.assertRaises(RangeIntException):
             self.device.blink(BLUE, Pattern.MAX_BUFFER_SIZE // 2 + 1, 100)
 
     def test_morph(self):
+        self.assertTrue(self.device.isOff())
         duration = 1000
         self.device.setColor(RED)
+        self.assertEqual(RED, self.device.getColor())
         self.device.morph(BLUE, duration, 60)
-        time.sleep((duration / 1000.0) * 3)
+        time.sleep((duration / 1000.0) * 2)
         self.assertEqual(BLUE, self.device.getColor())
         self.device.turnOff()
         self.assertEqual(OFF, self.device.getColor())
 
     def test_morph_default_steps(self):
+        self.assertTrue(self.device.isOff())
         duration = 1000
         self.device.setColor(RED)
+        self.assertEqual(RED, self.device.getColor())
         self.device.morph(GREEN, duration)
-        time.sleep((duration / 1000.0) * 1.5)
+        time.sleep((duration / 1000.0) * 2)
         self.assertEqual(GREEN, self.device.getColor())
         self.device.turnOff()
 
