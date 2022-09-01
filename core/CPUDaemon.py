@@ -63,6 +63,9 @@ def get_log_file_handles(logger):
     return handles
 
 
+daemon.daemon.get_maximum_file_descriptors = lambda *args: 1204
+
+
 class CPUDaemon:
     # Log to /var/log/syslog
     _syslog_handler: Final = SysLogHandler(
